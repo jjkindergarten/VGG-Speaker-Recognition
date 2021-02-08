@@ -227,8 +227,8 @@ def set_path(args):
                                 'ohemlevel{args.ohem_level}_seed{args.seed}'.format(date, args=args))
     else:
         raise IOError('==> unknown aggregation mode.')
-    model_path = os.path.join(args.record_path, '../model', exp_path)
-    log_path = os.path.join(args.record_path, '../log', exp_path)
+    model_path = os.path.join(args.record_path, 'model', exp_path)
+    log_path = os.path.join(args.record_path, 'log', exp_path)
     if not os.path.exists(model_path): os.makedirs(model_path)
     if not os.path.exists(log_path): os.makedirs(log_path)
     return model_path, log_path
