@@ -55,9 +55,9 @@ def main():
     #       Get Train/Val.
     # ==================================
     trnlist, trnlb = toolkits.get_hike_datalist(args, path=os.path.join(args.meta_data_path,
-                                                                        '/hike_train_{}.json'.format(args.seed)))
+                                                                        'hike_train_{}.json'.format(args.seed)))
     vallist, vallb = toolkits.get_hike_datalist(args, path=os.path.join(args.meta_data_path,
-                                                                        '/hike_val_{}.json'.format(args.seed)))
+                                                                        'hike_val_{}.json'.format(args.seed)))
 
     # construct the data generator.
     params = {'dim': (257, 250, 1),
