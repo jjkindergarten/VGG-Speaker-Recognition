@@ -6,6 +6,7 @@ import keras
 import numpy as np
 import utils as ut
 
+
 np.seterr(all='raise')
 
 sys.path.append('../tool')
@@ -89,7 +90,11 @@ def main():
     val_data = np.expand_dims(np.array([p.get() for p in val_data]), -1)
 
     # ==> load pre-trained model ???
-    mgpu = len(keras.backend.tensorflow_backend._get_available_gpus())
+    print(keras.backend.tensorflow_backend._get_available_gpus())
+
+    config = tf.ConfigProto(device_count={'GPU': 1})
+    sess = tf.Session(config=config)
+    keras.backend.set_session(sess)
 
     if args.resume:
         print("Attempting to load", args.resume)
@@ -206,17 +211,20 @@ def set_path(args):
     if args.aggregation_mode == 'avg':
         exp_path = os.path.join(args.aggregation_mode+'_{}'.format(args.loss),
                                 '{0}_{args.net}_bs{args.batch_size}_{args.optimizer}_'
-                                'lr{args.lr}_bdim{args.bottleneck_dim}_ohemlevel{args.ohem_level}'.format(date, args=args))
+                                'lr{args.lr}_bdim{args.bottleneck_dim}_'
+                                'ohemlevel{args.ohem_level}_seed{args.seed}'.format(date, args=args))
     elif args.aggregation_mode == 'vlad':
         exp_path = os.path.join(args.aggregation_mode+'_{}'.format(args.loss),
                                 '{0}_{args.net}_bs{args.batch_size}_{args.optimizer}_'
                                 'lr{args.lr}_vlad{args.vlad_cluster}_'
-                                'bdim{args.bottleneck_dim}_ohemlevel{args.ohem_level}'.format(date, args=args))
+                                'bdim{args.bottleneck_dim}_'
+                                'ohemlevel{args.ohem_level}_seed{args.seed}'.format(date, args=args))
     elif args.aggregation_mode == 'gvlad':
         exp_path = os.path.join(args.aggregation_mode+'_{}'.format(args.loss),
                                 '{0}_{args.net}_bs{args.batch_size}_{args.optimizer}_'
                                 'lr{args.lr}_vlad{args.vlad_cluster}_ghost{args.ghost_cluster}_'
-                                'bdim{args.bottleneck_dim}_ohemlevel{args.ohem_level}'.format(date, args=args))
+                                'bdim{args.bottleneck_dim}_'
+                                'ohemlevel{args.ohem_level}_seed{args.seed}'.format(date, args=args))
     else:
         raise IOError('==> unknown aggregation mode.')
     model_path = os.path.join(args.record_path, '../model', exp_path)
