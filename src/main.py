@@ -92,10 +92,6 @@ def main():
     # ==> load pre-trained model ???
     print(keras.backend.tensorflow_backend._get_available_gpus())
 
-    config = tf.ConfigProto(device_count={'GPU': 1})
-    sess = tf.Session(config=config)
-    keras.backend.set_session(sess)
-
     if args.resume:
         print("Attempting to load", args.resume)
         if args.resume:
