@@ -22,6 +22,7 @@ parser.add_argument('--resume', default='', type=str)
 parser.add_argument('--batch_size', default=64, type=int)
 parser.add_argument('--data_path', default='../../../data/audio_data_OTR', type=str)
 parser.add_argument('--meta_data_path', default='../meta', type=str)
+parser.add_argument('--record_path', default='../record', type=str)
 parser.add_argument('--multiprocess', default=12, type=int)
 # set up network configuration.
 parser.add_argument('--net', default='resnet34s', choices=['resnet34s', 'resnet34l'], type=str)
@@ -221,8 +222,8 @@ def set_path(args):
                                 'bdim{args.bottleneck_dim}_ohemlevel{args.ohem_level}'.format(date, args=args))
     else:
         raise IOError('==> unknown aggregation mode.')
-    model_path = os.path.join('../model', exp_path)
-    log_path = os.path.join('../log', exp_path)
+    model_path = os.path.join(args.record_path, '../model', exp_path)
+    log_path = os.path.join(args.record_path, '../log', exp_path)
     if not os.path.exists(model_path): os.makedirs(model_path)
     if not os.path.exists(log_path): os.makedirs(log_path)
     return model_path, log_path
