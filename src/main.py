@@ -21,6 +21,7 @@ parser.add_argument('--gpu', default='', type=str)
 parser.add_argument('--resume', default='', type=str)
 parser.add_argument('--batch_size', default=64, type=int)
 parser.add_argument('--data_path', default='../../../data/audio_data_OTR', type=str)
+parser.add_argument('--meta_data_path', default='../meta', type=str)
 parser.add_argument('--multiprocess', default=12, type=int)
 # set up network configuration.
 parser.add_argument('--net', default='resnet34s', choices=['resnet34s', 'resnet34l'], type=str)
@@ -52,8 +53,10 @@ def main():
     # ==================================
     #       Get Train/Val.
     # ==================================
-    trnlist, trnlb = toolkits.get_hike_datalist(args, path='../meta/hike_train_{}.json'.format(args.seed))
-    vallist, vallb = toolkits.get_hike_datalist(args, path='../meta/hike_val_{}.json'.format(args.seed))
+    trnlist, trnlb = toolkits.get_hike_datalist(args, path=os.path.join(args.meta_data_path,
+                                                                        '/hike_train_{}.json'.format(args.seed)))
+    vallist, vallb = toolkits.get_hike_datalist(args, path=os.path.join(args.meta_data_path,
+                                                                        '/hike_val_{}.json'.format(args.seed)))
 
     # construct the data generator.
     params = {'dim': (257, 250, 1),
