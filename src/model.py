@@ -172,8 +172,8 @@ def vggvox_resnet2d_icassp(input_dim=(257, 250, 1), num_class=8631, mode='train'
     else:
         raise IOError('==> unknown loss.')
 
-    if mode == 'eval':
-        y = keras.layers.Lambda(lambda x: keras.backend.l2_normalize(x, 1))(x)
+    # if mode == 'eval':
+    #     y = keras.layers.Lambda(lambda x: keras.backend.l2_normalize(x, 1))(x)
 
     model = keras.models.Model(inputs, y, name='vggvox_resnet2D_{}_{}'.format(loss, aggregation))
 

@@ -4,6 +4,7 @@ import os
 import sys
 import keras
 import numpy as np
+import utils as ut
 
 np.seterr(all='raise')
 
@@ -19,7 +20,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--gpu', default='', type=str)
 parser.add_argument('--resume', default='', type=str)
 parser.add_argument('--batch_size', default=64, type=int)
-parser.add_argument('--data_path', default='/scratch/local/ssd/weidi/voxceleb2/dev/wav', type=str)
+parser.add_argument('--data_path', default='../../../data/audio_data_OTR', type=str)
 parser.add_argument('--multiprocess', default=12, type=int)
 # set up network configuration.
 parser.add_argument('--net', default='resnet34s', choices=['resnet34s', 'resnet34l'], type=str)
@@ -28,13 +29,15 @@ parser.add_argument('--vlad_cluster', default=10, type=int)
 parser.add_argument('--bottleneck_dim', default=512, type=int)
 parser.add_argument('--aggregation_mode', default='gvlad', choices=['avg', 'vlad', 'gvlad'], type=str)
 # set up learning rate, training loss and optimizer.
-parser.add_argument('--epochs', default=56, type=int)
+parser.add_argument('--epochs', default=15, type=int)
 parser.add_argument('--lr', default=0.001, type=float)
 parser.add_argument('--warmup_ratio', default=0, type=float)
 parser.add_argument('--loss', default='softmax', choices=['softmax', 'amsoftmax'], type=str)
 parser.add_argument('--optimizer', default='adam', choices=['adam', 'sgd'], type=str)
 parser.add_argument('--ohem_level', default=0, type=int,
                     help='pick hard samples from (ohem_level * batch_size) proposals, must be > 1')
+parser.add_argument('--seed', default=2, type=int,
+                    help='seed for which dataset to use')
 global args
 args = parser.parse_args()
 
@@ -49,8 +52,8 @@ def main():
     # ==================================
     #       Get Train/Val.
     # ==================================
-    trnlist, trnlb = toolkits.get_voxceleb2_datalist(args, path='../meta/voxlb2_train.txt')
-    vallist, vallb = toolkits.get_voxceleb2_datalist(args, path='../meta/voxlb2_val.txt')
+    trnlist, trnlb = toolkits.get_hike_datalist(args, path='../meta/hike_train_{}.json'.format(args.seed))
+    vallist, vallb = toolkits.get_hike_datalist(args, path='../meta/hike_val_{}.json'.format(args.seed))
 
     # construct the data generator.
     params = {'dim': (257, 250, 1),
@@ -59,7 +62,7 @@ def main():
               'spec_len': 250,
               'win_length': 400,
               'hop_length': 160,
-              'n_classes': 5994,
+              'n_classes': 2,
               'sampling_rate': 16000,
               'batch_size': args.batch_size,
               'shuffle': True,
@@ -75,6 +78,12 @@ def main():
     network = model.vggvox_resnet2d_icassp(input_dim=params['dim'],
                                            num_class=params['n_classes'],
                                            mode='train', args=args)
+    # val data
+    val_data = [params['mp_pooler'].apply_async(ut.load_data,
+                                    args=(ID, params['win_length'], params['sampling_rate'], params['hop_length'],
+                                          params['nfft'], params['spec_len'])) for ID in partition['val']]
+    val_data = np.expand_dims(np.array([p.get() for p in val_data]), -1)
+
     # ==> load pre-trained model ???
     mgpu = len(keras.backend.tensorflow_backend._get_available_gpus())
 
@@ -82,7 +91,7 @@ def main():
         print("Attempting to load", args.resume)
         if args.resume:
             if os.path.isfile(args.resume):
-                if mgpu == 1:
+                if mgpu == 0:
                     # by_name=True, skip_mismatch=True
                     # https://github.com/WeidiXie/VGG-Speaker-Recognition/issues/46
                     network.load_weights(os.path.join(args.resume), by_name=True, skip_mismatch=True)
@@ -104,7 +113,9 @@ def main():
     callbacks = [keras.callbacks.ModelCheckpoint(os.path.join(model_path, 'weights-{epoch:02d}-{acc:.3f}.h5'),
                                                  monitor='loss',
                                                  mode='min',
-                                                 save_best_only=True),
+                                                 save_best_only=True,
+                                                 period=5,
+                                                 ),
                  normal_lr, tbcallbacks]
 
     if args.ohem_level > 1:     # online hard negative mining will be used
@@ -138,10 +149,24 @@ def main():
                               steps_per_epoch=int(len(partition['train'])//args.batch_size),
                               epochs=args.epochs,
                               max_queue_size=10,
+                              validation_data=(val_data, keras.utils.to_categorical(labels['val'], num_classes=params['n_classes'])),
+                              validation_freq=1,
                               callbacks=callbacks,
                               use_multiprocessing=False,
                               workers=1,
                               verbose=1)
+
+    # testlist, testlb = toolkits.get_hike_datalist(args, path='../meta/hike_test_{}.json'.format(args.seed))
+    #
+    # test_data = [params['mp_pooler'].apply_async(ut.load_data,
+    #                                 args=(ID, params['win_length'], params['sampling_rate'], params['hop_length'],
+    #                                       params['nfft'], params['spec_len'])) for ID in testlist]
+    # test_data = np.expand_dims(np.array([p.get() for p in test_data]), -1)
+    #
+    # v = network.predict(test_data)
+    # v = ((v<0.5)*1)[:,0]
+    # acc = sum(v==vallb)/len(vallb)
+    # print('test data predict accuracy is {}'.format(acc))
 
 
 def step_decay(epoch):
