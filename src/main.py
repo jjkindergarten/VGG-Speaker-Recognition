@@ -95,12 +95,9 @@ def main():
         print("Attempting to load", args.resume)
         if args.resume:
             if os.path.isfile(args.resume):
-                if mgpu == 0:
-                    # by_name=True, skip_mismatch=True
-                    # https://github.com/WeidiXie/VGG-Speaker-Recognition/issues/46
-                    network.load_weights(os.path.join(args.resume), by_name=True, skip_mismatch=True)
-                else:
-                    network.layers[mgpu + 1].load_weights(os.path.join(args.resume))
+                # by_name=True, skip_mismatch=True
+                # https://github.com/WeidiXie/VGG-Speaker-Recognition/issues/46
+                network.load_weights(os.path.join(args.resume), by_name=True, skip_mismatch=True)
                 print('==> successfully loading model {}.'.format(args.resume))
             else:
                 print("==> no checkpoint found at '{}'".format(args.resume))
