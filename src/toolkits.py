@@ -106,10 +106,18 @@ def get_voxceleb2_datalist(args, path):
 def get_hike_datalist(args, path):
     with open(path) as f:
         meta_list = json.load(f)
-        audiolist = np.array([os.path.join(args.data_path, i[0]) for i in meta_list])
-        labellist = np.array([1 if i[1] == 'high' else 0 for i in meta_list])
+        audiolist = np.array([os.path.join(args.data_path, i[0]) for i in meta_list if i[2] != 'medium'])
+        labellist = np.array([1 if i[2] == 'high' else 0 for i in meta_list if i[2] != 'medium'])
         f.close()
     return audiolist, labellist
+
+def get_hike_datalist2(args, path):
+    with open(path) as f:
+        meta_list = json.load(f)
+        audiolist = np.array([os.path.join(args.data_path, i[0]) for i in meta_list if i[2] != 'medium'])
+        scorelist = np.array([i[1] for i in meta_list if i[2] != 'medium'])
+        f.close()
+    return audiolist, scorelist
 
 def calculate_eer(y, y_score):
     # y denotes groundtruth scores,

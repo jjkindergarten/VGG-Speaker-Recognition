@@ -169,8 +169,14 @@ def vggvox_resnet2d_icassp(input_dim=(257, 250, 1), num_class=8631, mode='train'
                                name='prediction')(x_l2)
         trnloss = amsoftmax_loss
 
-    else:
-        raise IOError('==> unknown loss.')
+    elif loss == 'regression':
+        y = keras.layers.Dense(1, activation=None,
+                               kernel_initializer='orthogonal',
+                               use_bias=False, trainable=True,
+                               kernel_regularizer=keras.regularizers.l2(weight_decay),
+                               bias_regularizer=keras.regularizers.l2(weight_decay),
+                               name='prediction')(x)
+        trnloss = 'mean_squared_error'
 
     # if mode == 'eval':
     #     y = keras.layers.Lambda(lambda x: keras.backend.l2_normalize(x, 1))(x)
@@ -184,5 +190,8 @@ def vggvox_resnet2d_icassp(input_dim=(257, 250, 1), num_class=8631, mode='train'
         if args.optimizer == 'adam':  opt = keras.optimizers.Adam(lr=1e-3)
         elif args.optimizer =='sgd':  opt = keras.optimizers.SGD(lr=0.1, momentum=0.9, decay=0.0, nesterov=True)
         else: raise IOError('==> unknown optimizer type')
-        model.compile(optimizer=opt, loss=trnloss, metrics=['acc'])
+        if loss != 'regression':
+            model.compile(optimizer=opt, loss=trnloss, metrics=['acc'])
+        else:
+            model.compile(optimizer=opt, loss=trnloss, metrics=[tf.keras.metrics.MeanSquaredError()])
     return model

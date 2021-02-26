@@ -21,9 +21,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--gpu', default='', type=str)
 parser.add_argument('--resume', default='', type=str)
 parser.add_argument('--batch_size', default=64, type=int)
-parser.add_argument('--data_path', default='../../../data/audio_data_OTR', type=str)
-parser.add_argument('--meta_data_path', default='../meta', type=str)
-parser.add_argument('--record_path', default='../record', type=str)
+parser.add_argument('--data_path', default='../../../D2_data/audio_data_OTR', type=str)
+parser.add_argument('--meta_data_path', default='../../../D2_data/meta2', type=str)
+parser.add_argument('--record_path', default='../../../D2_data/record', type=str)
 parser.add_argument('--multiprocess', default=12, type=int)
 # set up network configuration.
 parser.add_argument('--net', default='resnet34s', choices=['resnet34s', 'resnet34l'], type=str)
@@ -32,15 +32,16 @@ parser.add_argument('--vlad_cluster', default=10, type=int)
 parser.add_argument('--bottleneck_dim', default=512, type=int)
 parser.add_argument('--aggregation_mode', default='gvlad', choices=['avg', 'vlad', 'gvlad'], type=str)
 # set up learning rate, training loss and optimizer.
-parser.add_argument('--epochs', default=15, type=int)
+parser.add_argument('--epochs', default=50, type=int)
 parser.add_argument('--lr', default=0.001, type=float)
 parser.add_argument('--warmup_ratio', default=0, type=float)
-parser.add_argument('--loss', default='softmax', choices=['softmax', 'amsoftmax'], type=str)
+parser.add_argument('--loss', default='softmax', choices=['softmax', 'amsoftmax', 'regression'], type=str)
 parser.add_argument('--optimizer', default='adam', choices=['adam', 'sgd'], type=str)
 parser.add_argument('--ohem_level', default=0, type=int,
                     help='pick hard samples from (ohem_level * batch_size) proposals, must be > 1')
-parser.add_argument('--seed', default=2, type=int,
-                    help='seed for which dataset to use')
+parser.add_argument('--seed', default=2, type=int, help='seed for which dataset to use')
+parser.add_argument('--data_format', default='wav', choices=['wav', 'npy'], type=str)
+parser.add_argument('--audio_length', default=2.5, type=float)
 global args
 args = parser.parse_args()
 
@@ -55,16 +56,24 @@ def main():
     # ==================================
     #       Get Train/Val.
     # ==================================
-    trnlist, trnlb = toolkits.get_hike_datalist(args, path=os.path.join(args.meta_data_path,
-                                                                        'hike_train_{}.json'.format(args.seed)))
-    vallist, vallb = toolkits.get_hike_datalist(args, path=os.path.join(args.meta_data_path,
-                                                                        'hike_val_{}.json'.format(args.seed)))
 
+    if args.loss != 'regression':
+        trnlist, trnlb = toolkits.get_hike_datalist(args, path=os.path.join(args.meta_data_path,
+                                                                            'hike_train_{}.json'.format(args.seed)))
+        vallist, vallb = toolkits.get_hike_datalist(args, path=os.path.join(args.meta_data_path,
+                                                                            'hike_val_{}.json'.format(args.seed)))
+    else:
+        trnlist, trnlb = toolkits.get_hike_datalist2(args, path=os.path.join(args.meta_data_path,
+                                                                            'hike_train_{}.json'.format(args.seed)))
+        vallist, vallb = toolkits.get_hike_datalist2(args, path=os.path.join(args.meta_data_path,
+                                                                            'hike_val_{}.json'.format(args.seed)))
+
+    input_length = int(args.audio_length * 100)
     # construct the data generator.
-    params = {'dim': (257, 250, 1),
+    params = {'dim': (257, input_length, 1),
               'mp_pooler': toolkits.set_mp(processes=args.multiprocess),
               'nfft': 512,
-              'spec_len': 250,
+              'spec_len': input_length,
               'win_length': 400,
               'hop_length': 160,
               'n_classes': 2,
@@ -72,6 +81,7 @@ def main():
               'batch_size': args.batch_size,
               'shuffle': True,
               'normalize': True,
+              'loss': args.loss
               }
 
     # Datasets
@@ -86,7 +96,7 @@ def main():
     # val data
     val_data = [params['mp_pooler'].apply_async(ut.load_data,
                                     args=(ID, params['win_length'], params['sampling_rate'], params['hop_length'],
-                                          params['nfft'], params['spec_len'])) for ID in partition['val']]
+                                          params['nfft'], params['spec_len'], 'train', args.data_format)) for ID in partition['val']]
     val_data = np.expand_dims(np.array([p.get() for p in val_data]), -1)
 
     # ==> load pre-trained model ???
@@ -101,7 +111,7 @@ def main():
                 network.load_weights(os.path.join(args.resume), by_name=True, skip_mismatch=True)
                 print('==> successfully loading model {}.'.format(args.resume))
             else:
-                print("==> no checkpoint found at '{}'".format(args.resume))
+                raise ValueError("==> no checkpoint found at '{}'".format(args.resume))
 
     print(network.summary())
     print('==> gpu {} is, training {} images, classes: 0-{} '
@@ -112,7 +122,7 @@ def main():
     normal_lr = keras.callbacks.LearningRateScheduler(step_decay)
     tbcallbacks = keras.callbacks.TensorBoard(log_dir=log_path, histogram_freq=0, write_graph=True, write_images=False,
                                               update_freq=args.batch_size * 16)
-    callbacks = [keras.callbacks.ModelCheckpoint(os.path.join(model_path, 'weights-{epoch:02d}-{acc:.3f}.h5'),
+    callbacks = [keras.callbacks.ModelCheckpoint(os.path.join(model_path, 'weights-{epoch:02d}-{loss:.3f}.h5'),
                                                  monitor='loss',
                                                  mode='min',
                                                  save_best_only=True,
@@ -147,16 +157,28 @@ def main():
                               verbose=1)
 
     else:
-        network.fit_generator(trn_gen,
-                              steps_per_epoch=int(len(partition['train'])//args.batch_size),
-                              epochs=args.epochs,
-                              max_queue_size=10,
-                              validation_data=(val_data, keras.utils.to_categorical(labels['val'], num_classes=params['n_classes'])),
-                              validation_freq=1,
-                              callbacks=callbacks,
-                              use_multiprocessing=False,
-                              workers=1,
-                              verbose=1)
+        if args.loss != 'regression':
+            network.fit_generator(trn_gen,
+                                  steps_per_epoch=int(len(partition['train'])//args.batch_size),
+                                  epochs=args.epochs,
+                                  max_queue_size=10,
+                                  validation_data=(val_data, keras.utils.to_categorical(labels['val'], num_classes=params['n_classes'])),
+                                  validation_freq=1,
+                                  callbacks=callbacks,
+                                  use_multiprocessing=False,
+                                  workers=1,
+                                  verbose=1)
+        else:
+            network.fit_generator(trn_gen,
+                                  steps_per_epoch=int(len(partition['train'])//args.batch_size),
+                                  epochs=args.epochs,
+                                  max_queue_size=10,
+                                  validation_data=(val_data, labels['val']),
+                                  validation_freq=1,
+                                  callbacks=callbacks,
+                                  use_multiprocessing=False,
+                                  workers=1,
+                                  verbose=1)
 
     # testlist, testlb = toolkits.get_hike_datalist(args, path='../meta/hike_test_{}.json'.format(args.seed))
     #

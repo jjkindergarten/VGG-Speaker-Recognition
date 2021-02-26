@@ -16,10 +16,9 @@ import argparse
 parser = argparse.ArgumentParser()
 # set up training configuration.
 parser.add_argument('--gpu', default='', type=str)
-parser.add_argument('--resume', default='../model/gvlad_softmax/2021-02-05_resnet34s_bs16_adam_'
-                                        'lr0.001_vlad8_ghost2_bdim512_ohemlevel0/weights-18-0.968.h5', type=str)
+parser.add_argument('--resume', default='../../model_weight/regression_weight.h5', type=str)
 parser.add_argument('--batch_size', default=16, type=int)
-parser.add_argument('--data_path', default='../../../data/audio_data_OTR', type=str)
+parser.add_argument('--data_path', default='../../../../data/spec_data_OTR', type=str)
 parser.add_argument('--multiprocess', default=4, type=int)
 # set up network configuration.
 parser.add_argument('--net', default='resnet34s', choices=['resnet34s', 'resnet34l'], type=str)
@@ -28,7 +27,10 @@ parser.add_argument('--vlad_cluster', default=8, type=int)
 parser.add_argument('--bottleneck_dim', default=512, type=int)
 parser.add_argument('--aggregation_mode', default='gvlad', choices=['avg', 'vlad', 'gvlad'], type=str)
 # set up learning rate, training loss and optimizer.
-parser.add_argument('--loss', default='softmax', choices=['softmax', 'amsoftmax'], type=str)
+parser.add_argument('--loss', default='softmax', choices=['softmax', 'amsoftmax', 'regression'], type=str)
+parser.add_argument('--meta_data_path', default='../../../../data/meta2', type=str)
+parser.add_argument('--seed', default=2, type=int, help='seed for which dataset to use')
+parser.add_argument('--data_format', default='wav', choices=['wav', 'npy'], type=str)
 
 global args
 args = parser.parse_args()
@@ -44,9 +46,9 @@ def main():
     # ==================================
     # print('==> calculating test({}) data lists...'.format(args.test_type))
 
-    vallist, vallb = toolkits.get_hike_datalist(args, path='../meta/hike_val.json')
-    # vallist = vallist[:5]
-    # vallb = vallb[:5]
+    vallist, vallb = toolkits.get_hike_datalist2(args, path=os.path.join(args.meta_data_path, 'hike_test_{}.json'.format(args.seed)))
+    # vallist = vallist[:10]
+    # vallb = vallb[:10]
 
     #
     # verify_list = np.loadtxt('../meta/voxceleb1_veri_test_extended.txt', str)
@@ -93,17 +95,18 @@ def main():
 
     val_data = [params['mp_pooler'].apply_async(ut.load_data,
                                     args=(ID, params['win_length'], params['sampling_rate'], params['hop_length'],
-                                          params['nfft'], params['spec_len'])) for ID in vallist]
+                                          params['nfft'], params['spec_len'], 'test', args.data_format)) for ID in vallist]
     val_data = np.expand_dims(np.array([p.get() for p in val_data]), -1)
+    # for ID in vallist:
+    #     val_data = ut.load_data(ID, params['win_length'], params['sampling_rate'], params['hop_length'],params['nfft'],
+    #                  params['spec_len'], 'train', args.data_format)
 
+    print(val_data.shape)
     v = network_eval.predict(val_data)
     print(v.shape)
-    v = ((v<0.5)*1)[:,0]
-    acc = sum(v==vallb)/len(vallb)
-    print(v)
-    print(vallb)
-    print(acc)
-
+    print(v[:5])
+    print(vallb[:5])
+    print('mse: ', np.square(np.subtract(v, vallb)).mean())
 
 if __name__ == '__main__':
     main()

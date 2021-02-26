@@ -6,7 +6,8 @@ import utils as ut
 class DataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
     def __init__(self, list_IDs, labels, dim, mp_pooler, augmentation=True, batch_size=32, nfft=512, spec_len=250,
-                 win_length=400, sampling_rate=16000, hop_length=160, n_classes=5994, shuffle=True, normalize=True):
+                 win_length=400, sampling_rate=16000, hop_length=160, n_classes=5994, shuffle=True, normalize=True,
+                 loss='softmax'):
         'Initialization'
         self.dim = dim
         self.nfft = nfft
@@ -16,7 +17,7 @@ class DataGenerator(keras.utils.Sequence):
         self.mp_pooler = mp_pooler
         self.win_length = win_length
         self.hop_length = hop_length
-
+        self.loss = loss
 
         self.labels = labels
         self.shuffle = shuffle
@@ -57,7 +58,11 @@ class DataGenerator(keras.utils.Sequence):
                                         self.nfft, self.spec_len)) for ID in list_IDs_temp]
         X = np.expand_dims(np.array([p.get() for p in X]), -1)
         y = self.labels[indexes]
-        return X, keras.utils.to_categorical(y, num_classes=self.n_classes)
+
+        if self.loss != 'regression':
+            return X, keras.utils.to_categorical(y, num_classes=self.n_classes)
+        else:
+            return X, y
 
 
     def __data_generation(self, list_IDs_temp, indexes):
@@ -74,7 +79,10 @@ class DataGenerator(keras.utils.Sequence):
             # Store class
             y[i] = self.labels[indexes[i]]
 
-        return X, keras.utils.to_categorical(y, num_classes=self.n_classes)
+        if self.loss != 'regression':
+            return X, keras.utils.to_categorical(y, num_classes=self.n_classes)
+        else:
+            return X, y
 
 
 def OHEM_generator(model, datagen, steps, propose_time, batch_size, dims, nclass):
