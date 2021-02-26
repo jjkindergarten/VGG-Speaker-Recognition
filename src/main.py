@@ -81,7 +81,8 @@ def main():
               'batch_size': args.batch_size,
               'shuffle': True,
               'normalize': True,
-              'loss': args.loss
+              'loss': args.loss,
+              'data_format': args.data_format
               }
 
     # Datasets

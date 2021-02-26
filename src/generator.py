@@ -7,7 +7,7 @@ class DataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
     def __init__(self, list_IDs, labels, dim, mp_pooler, augmentation=True, batch_size=32, nfft=512, spec_len=250,
                  win_length=400, sampling_rate=16000, hop_length=160, n_classes=5994, shuffle=True, normalize=True,
-                 loss='softmax'):
+                 loss='softmax', data_format='wav'):
         'Initialization'
         self.dim = dim
         self.nfft = nfft
@@ -18,6 +18,7 @@ class DataGenerator(keras.utils.Sequence):
         self.win_length = win_length
         self.hop_length = hop_length
         self.loss = loss
+        self.data_format = data_format
 
         self.labels = labels
         self.shuffle = shuffle
@@ -55,7 +56,7 @@ class DataGenerator(keras.utils.Sequence):
     def __data_generation_mp(self, list_IDs_temp, indexes):
         X = [self.mp_pooler.apply_async(ut.load_data,
                                         args=(ID, self.win_length, self.sr, self.hop_length,
-                                        self.nfft, self.spec_len)) for ID in list_IDs_temp]
+                                        self.nfft, self.spec_len, 'train', self.data_format)) for ID in list_IDs_temp]
         X = np.expand_dims(np.array([p.get() for p in X]), -1)
         y = self.labels[indexes]
 
