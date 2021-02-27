@@ -59,7 +59,7 @@ def main():
                                                                              'hike_val_{}.json'.format(args.seed)))
 
     vallist = np.concatenate([vallist, testlist])
-    vallb = np.concatenate([vallb, vallb])
+    vallb = np.concatenate([vallb, testlb])
     # vallist = vallist[:10]
     # vallb = vallb[:10]
 
