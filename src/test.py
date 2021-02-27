@@ -46,8 +46,10 @@ def main():
     #       Get Train/Val.
     # ==================================
     # print('==> calculating test({}) data lists...'.format(args.test_type))
-
-    vallist, vallb = toolkits.get_hike_datalist2(args, path=os.path.join(args.meta_data_path, 'hike_test_{}.json'.format(args.seed)))
+    if args.loss != 'regression':
+        vallist, vallb = toolkits.get_hike_datalist(args, path=os.path.join(args.meta_data_path, 'hike_test_{}.json'.format(args.seed)))
+    else:
+        vallist, vallb = toolkits.get_hike_datalist2(args, path=os.path.join(args.meta_data_path, 'hike_test_{}.json'.format(args.seed)))
     # vallist = vallist[:10]
     # vallb = vallb[:10]
 
