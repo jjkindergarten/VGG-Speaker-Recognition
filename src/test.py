@@ -31,6 +31,7 @@ parser.add_argument('--loss', default='softmax', choices=['softmax', 'amsoftmax'
 parser.add_argument('--meta_data_path', default='../../../../data/meta2', type=str)
 parser.add_argument('--seed', default=2, type=int, help='seed for which dataset to use')
 parser.add_argument('--data_format', default='wav', choices=['wav', 'npy'], type=str)
+parser.add_argument('--audio_length', default=2.5, type=float)
 
 global args
 args = parser.parse_args()
@@ -67,7 +68,7 @@ def main():
     params = {'dim': (257, None, 1),
               'mp_pooler': toolkits.set_mp(processes=args.multiprocess),
               'nfft': 512,
-              'spec_len': 250,
+              'spec_len': args.data_format,
               'win_length': 400,
               'hop_length': 160,
               'n_classes': 2,
