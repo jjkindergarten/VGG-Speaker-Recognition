@@ -47,9 +47,19 @@ def main():
     # ==================================
     # print('==> calculating test({}) data lists...'.format(args.test_type))
     if args.loss != 'regression':
-        vallist, vallb = toolkits.get_hike_datalist(args, path=os.path.join(args.meta_data_path, 'hike_test_{}.json'.format(args.seed)))
+        testlist, testlb = toolkits.get_hike_datalist(args, path=os.path.join(args.meta_data_path,
+                                                                               'hike_test_{}.json'.format(args.seed)))
+        vallist, vallb = toolkits.get_hike_datalist(args, path=os.path.join(args.meta_data_path,
+                                                                             'hike_val_{}.json'.format(args.seed)))
+
     else:
-        vallist, vallb = toolkits.get_hike_datalist2(args, path=os.path.join(args.meta_data_path, 'hike_test_{}.json'.format(args.seed)))
+        testlist, testlb = toolkits.get_hike_datalist2(args, path=os.path.join(args.meta_data_path,
+                                                                               'hike_test_{}.json'.format(args.seed)))
+        vallist, vallb = toolkits.get_hike_datalist2(args, path=os.path.join(args.meta_data_path,
+                                                                             'hike_val_{}.json'.format(args.seed)))
+
+    vallist = np.concatenate([vallist, testlist])
+    vallb = np.concatenate([vallb, vallb])
     # vallist = vallist[:10]
     # vallb = vallb[:10]
 
