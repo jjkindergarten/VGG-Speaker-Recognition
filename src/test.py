@@ -106,10 +106,17 @@ def main():
 
     print(val_data.shape)
     v = network_eval.predict(val_data)
-    print(v.shape)
-    print(v[:5])
-    print(vallb[:5])
-    print('mse: ', np.square(np.subtract(v, vallb)).mean())
+    if args.loss == 'regression':
+        print(v.shape)
+        print(v[:5])
+        print(vallb[:5])
+        print('mse: ', np.square(np.subtract(v, vallb)).mean())
+    else:
+        v = ((v<0.5)*1)[:,0]
+        acc = sum(v==vallb)/len(vallb)
+        print(v)
+        print(vallb)
+        print(acc)
 
 if __name__ == '__main__':
     main()
