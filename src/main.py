@@ -231,19 +231,19 @@ def set_path(args):
         exp_path = os.path.join(args.aggregation_mode+'_{}'.format(args.loss),
                                 '{0}_{args.net}_bs{args.batch_size}_{args.optimizer}_'
                                 'lr{args.lr}_bdim{args.bottleneck_dim}_'
-                                'ohemlevel{args.ohem_level}_seed{args.seed}'.format(date, args=args))
+                                'ohemlevel{args.ohem_level}_seed{args.seed}_{args.loss}'.format(date, args=args))
     elif args.aggregation_mode == 'vlad':
         exp_path = os.path.join(args.aggregation_mode+'_{}'.format(args.loss),
                                 '{0}_{args.net}_bs{args.batch_size}_{args.optimizer}_'
                                 'lr{args.lr}_vlad{args.vlad_cluster}_'
                                 'bdim{args.bottleneck_dim}_'
-                                'ohemlevel{args.ohem_level}_seed{args.seed}'.format(date, args=args))
+                                'ohemlevel{args.ohem_level}_seed{args.seed}_{args.loss}'.format(date, args=args))
     elif args.aggregation_mode == 'gvlad':
         exp_path = os.path.join(args.aggregation_mode+'_{}'.format(args.loss),
                                 '{0}_{args.net}_bs{args.batch_size}_{args.optimizer}_'
                                 'lr{args.lr}_vlad{args.vlad_cluster}_ghost{args.ghost_cluster}_'
                                 'bdim{args.bottleneck_dim}_'
-                                'ohemlevel{args.ohem_level}_seed{args.seed}'.format(date, args=args))
+                                'ohemlevel{args.ohem_level}_seed{args.seed}_{args.loss}'.format(date, args=args))
     else:
         raise IOError('==> unknown aggregation mode.')
     model_path = os.path.join(args.record_path, 'model', exp_path)
