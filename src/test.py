@@ -118,8 +118,8 @@ def main():
     v = network_eval.predict(val_data)
     if args.loss == 'regression':
         print(v.shape)
-        print(v[:5])
-        print(vallb[:5])
+        print(v.astype('int'))
+        print(vallb)
         print('mse: ', np.square(np.subtract(v, vallb)).mean())
     else:
         v = ((v<0.5)*1)[:,0]
