@@ -124,7 +124,7 @@ def main():
         print(vallb)
         print('mse: ', np.square(np.subtract(v, vallb)).mean())
         v_test = np.vstack([v, vallb]).astype('float')
-        toolkits.get_content_score(args.meta_data_path, v_test, args)
+        toolkits.get_content_score(os.path.join(args.meta_data_path, 'hike_test_{}.json'.format(args.seed)), v_test, args)
     else:
         v = ((v<0.5)*1)[:,0]
         acc = sum(v==vallb)/len(vallb)
