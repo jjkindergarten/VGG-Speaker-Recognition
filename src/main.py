@@ -42,6 +42,7 @@ parser.add_argument('--ohem_level', default=0, type=int,
 parser.add_argument('--seed', default=2, type=int, help='seed for which dataset to use')
 parser.add_argument('--data_format', default='wav', choices=['wav', 'npy'], type=str)
 parser.add_argument('--audio_length', default=2.5, type=float)
+parser.add_argument('--category', default='high_low', type=str)
 global args
 args = parser.parse_args()
 
