@@ -157,6 +157,8 @@ def get_content_score(path, score, args):
 
     contentlist = np.array(contentlist_val + contentlist_test)
 
+    print(len(score))
+    print(len(contentlist))
     assert len(score) == len(contentlist)
     df = np.hstack(contentlist.reshape(-1,1), score)
     df = pd.DataFrame(data=df, columns=['content', 'score_predict', 'score_true'])
