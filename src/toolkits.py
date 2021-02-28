@@ -1,6 +1,7 @@
 import os
 import json
 import numpy as np
+import pandas as pd
 
 def initialize_GPU(args):
     # Initialize GPUs
@@ -144,3 +145,18 @@ def sync_model(src_model, tgt_model):
         if len(l.get_weights()) > 0:
             l.set_weights(params['{}'.format(l.name)])
     return tgt_model
+
+def get_content_score(path, score, args):
+    category = args.category.split('_')
+    with open(path, 'r') as f:
+        meta_list = json.load(f)
+        contentlist = np.array([i[3] for i in meta_list if i[2] in category])
+
+    assert len(score) == len(contentlist)
+    df = np.hstack(contentlist.reshape(-1,1), score)
+    df = pd.DataFrame(data=df, columns=['content', 'score_predict', 'score_true'])
+    df = df.sort_values(by='content', ignore_index=True)
+    df = df.astype({'score_predict': 'float', 'score_true': 'float'})
+    df_content = df.groupby(['content']).mean()
+    print(df_content)
+    print('mse by content: ', np.square(np.subtract(df_content[:,0], df_content[:,0])).mean())

@@ -120,9 +120,11 @@ def main():
     if args.loss == 'regression':
         v = v.astype('int').T[0]
         print(v.shape)
-        print(v.astype('int'))
+        print(v)
         print(vallb)
         print('mse: ', np.square(np.subtract(v, vallb)).mean())
+        v_test = np.vstack([v, vallb]).astype('float')
+        get_content_score(args.meta_data_path, v_test, args)
     else:
         v = ((v<0.5)*1)[:,0]
         acc = sum(v==vallb)/len(vallb)
