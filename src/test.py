@@ -78,10 +78,11 @@ def main():
     #       Get Model
     # ==================================
     # construct the data generator.
+    input_length = int(args.audio_length * 100)
     params = {'dim': (257, None, 1),
               'mp_pooler': toolkits.set_mp(processes=args.multiprocess),
               'nfft': 512,
-              'spec_len': args.data_format,
+              'spec_len': input_length,
               'win_length': 400,
               'hop_length': 160,
               'n_classes': 2,
@@ -123,7 +124,7 @@ def main():
         print(v)
         print(vallb)
         print('mse: ', np.square(np.subtract(v, vallb)).mean())
-        v_test = np.vstack([v, vallb]).astype('float')
+        v_test = np.vstack([v, vallb]).astype('float').T
         toolkits.get_content_score(args.meta_data_path, v_test, args)
     else:
         v = ((v<0.5)*1)[:,0]
