@@ -32,6 +32,7 @@ parser.add_argument('--meta_data_path', default='../../../../data/meta2', type=s
 parser.add_argument('--seed', default=2, type=int, help='seed for which dataset to use')
 parser.add_argument('--data_format', default='wav', choices=['wav', 'npy'], type=str)
 parser.add_argument('--audio_length', default=2.5, type=float)
+parser.add_argument('--category', default='high_low', type=str)
 
 global args
 args = parser.parse_args()
@@ -117,6 +118,7 @@ def main():
     print(val_data.shape)
     v = network_eval.predict(val_data)
     if args.loss == 'regression':
+        v = v.astype('int').T[0]
         print(v.shape)
         print(v.astype('int'))
         print(vallb)
