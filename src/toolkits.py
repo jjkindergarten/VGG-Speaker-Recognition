@@ -148,9 +148,14 @@ def sync_model(src_model, tgt_model):
 
 def get_content_score(path, score, args):
     category = args.category.split('_')
-    with open(path, 'r') as f:
-        meta_list = json.load(f)
-        contentlist = np.array([i[3] for i in meta_list if i[2] in category])
+    with open(os.path.join(path, 'hike_val_{}.json'.format(args.seed)), 'r') as f:
+        meta_list_val = json.load(f)
+        contentlist_val = [i[3] for i in meta_list_val if i[2] in category]
+    with open(os.path.join(path, 'hike_test_{}.json'.format(args.seed)), 'r') as f:
+        meta_list_test = json.load(f)
+        contentlist_test = [i[3] for i in meta_list_test if i[2] in category]
+
+    contentlist = np.array(contentlist_val + contentlist_test)
 
     assert len(score) == len(contentlist)
     df = np.hstack(contentlist.reshape(-1,1), score)
