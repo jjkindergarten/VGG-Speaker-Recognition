@@ -3,6 +3,8 @@ from __future__ import print_function
 import os
 import sys
 import keras
+import wandb
+from wandb.keras import WandbCallback
 import numpy as np
 import utils as ut
 
@@ -91,6 +93,7 @@ def main():
     labels = {'train': trnlb.flatten(), 'val': vallb.flatten()}
 
     # Generators
+    wandb.init(project='vgg_speaker')
     trn_gen = generator.DataGenerator(partition['train'], labels['train'], **params)
     network = model.vggvox_resnet2d_icassp(input_dim=params['dim'],
                                            num_class=params['n_classes'],
@@ -128,9 +131,9 @@ def main():
                                                  monitor='loss',
                                                  mode='min',
                                                  save_best_only=True,
-                                                 period=5,
+                                                 period=20,
                                                  ),
-                 normal_lr, tbcallbacks]
+                 normal_lr, tbcallbacks, WandbCallback()]
 
     if args.ohem_level > 1:     # online hard negative mining will be used
         candidate_steps = int(len(partition['train']) // args.batch_size)
@@ -182,17 +185,6 @@ def main():
                                   workers=1,
                                   verbose=1)
 
-    # testlist, testlb = toolkits.get_hike_datalist(args, path='../meta/hike_test_{}.json'.format(args.seed))
-    #
-    # test_data = [params['mp_pooler'].apply_async(ut.load_data,
-    #                                 args=(ID, params['win_length'], params['sampling_rate'], params['hop_length'],
-    #                                       params['nfft'], params['spec_len'])) for ID in testlist]
-    # test_data = np.expand_dims(np.array([p.get() for p in test_data]), -1)
-    #
-    # v = network.predict(test_data)
-    # v = ((v<0.5)*1)[:,0]
-    # acc = sum(v==vallb)/len(vallb)
-    # print('test data predict accuracy is {}'.format(acc))
 
 
 def step_decay(epoch):

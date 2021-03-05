@@ -183,6 +183,8 @@ def vggvox_resnet2d_icassp(input_dim=(257, 250, 1), num_class=8631, mode='train'
 
     model = keras.models.Model(inputs, y, name='vggvox_resnet2D_{}_{}'.format(loss, aggregation))
 
+
+
     if mode == 'train':
         if mgpu > 1:
             model = ModelMGPU(model, gpus=mgpu)
