@@ -105,11 +105,18 @@ def get_voxceleb2_datalist(args, path):
     return audiolist, labellist
 
 def get_hike_datalist(args, path):
+    def assgin_category(score):
+        if score <= 3:
+            return 0
+        elif score >= 7:
+            return 2
+        else:
+            return 1
     category = args.category.split('_')
     with open(path) as f:
         meta_list = json.load(f)
         audiolist = np.array([os.path.join(args.data_path, i[0]) for i in meta_list if i[2] in category])
-        labellist = np.array([1 if i[2] == 'high' else 0 for i in meta_list if i[2] in category])
+        labellist = np.array([assgin_category(i) for i in meta_list if i[2] in category])
         f.close()
     return audiolist, labellist
 
@@ -119,6 +126,7 @@ def get_hike_datalist2(args, path):
         meta_list = json.load(f)
         audiolist = np.array([os.path.join(args.data_path, i[0]) for i in meta_list if i[2] in category])
         scorelist = np.array([i[1] for i in meta_list if i[2] in category])
+        scorelist = (scorelist-5)/10
         f.close()
     return audiolist, scorelist
 

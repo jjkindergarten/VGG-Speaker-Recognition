@@ -18,7 +18,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--gpu', default='', type=str)
 parser.add_argument('--resume', default='../../model_weight/regression_weight.h5', type=str)
 parser.add_argument('--batch_size', default=16, type=int)
-parser.add_argument('--data_path', default='../../../../data/spec_data_OTR', type=str)
+parser.add_argument('--data_path', default='../../../D2_data/audio_data_OTR', type=str)
 parser.add_argument('--multiprocess', default=4, type=int)
 # set up network configuration.
 parser.add_argument('--net', default='resnet34s', choices=['resnet34s', 'resnet34l'], type=str)
@@ -28,7 +28,7 @@ parser.add_argument('--bottleneck_dim', default=512, type=int)
 parser.add_argument('--aggregation_mode', default='gvlad', choices=['avg', 'vlad', 'gvlad'], type=str)
 # set up learning rate, training loss and optimizer.
 parser.add_argument('--loss', default='softmax', choices=['softmax', 'amsoftmax', 'regression'], type=str)
-parser.add_argument('--meta_data_path', default='../../../../data/meta2', type=str)
+parser.add_argument('--meta_data_path', default='../../../D2_data/meta2', type=str)
 parser.add_argument('--seed', default=2, type=int, help='seed for which dataset to use')
 parser.add_argument('--data_format', default='wav', choices=['wav', 'npy'], type=str)
 parser.add_argument('--audio_length', default=2.5, type=float)
@@ -119,7 +119,8 @@ def main():
     print(val_data.shape)
     v = network_eval.predict(val_data)
     if args.loss == 'regression':
-        v = v.astype('int').T[0]
+        v = v.T[0] * 10 + 5
+        vallb = vallb * 10 + 5
         print(v.shape)
         print(v)
         print(vallb)

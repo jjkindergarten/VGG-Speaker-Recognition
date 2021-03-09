@@ -46,9 +46,12 @@ def lin_spectogram_from_path(path, sr, hop_length, win_length, n_fft, mode):
     linear_spect = lin_spectogram_from_wav(wav, hop_length, win_length, n_fft)
     return linear_spect
 
-def load_data(path, win_length=400, sr=16000, hop_length=160, n_fft=512, spec_len=250, mode='train', data_fromat='wav'):
+def load_data(path, win_length=400, sr=16000, hop_length=160, n_fft=512, spec_len=250, mode='train', data_fromat='wav', argumentation=False):
     if data_fromat == 'wav':
         wav = load_wav(path, sr=sr, mode=mode)
+        if argumentation:
+            speedup_ratio = np.random.random()/2+0.75
+            wav = librosa.effects.time_stretch(wav, speedup_ratio)
         linear_spect = lin_spectogram_from_wav(wav, hop_length, win_length, n_fft)
     elif data_fromat == 'npy':
         path = path.replace('.wav', '.npy')
