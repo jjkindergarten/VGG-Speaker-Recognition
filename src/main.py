@@ -79,7 +79,7 @@ def main():
               'spec_len': input_length,
               'win_length': 400,
               'hop_length': 160,
-              'n_classes': 2,
+              'n_classes': len(set(trnlb)),
               'sampling_rate': 16000,
               'batch_size': args.batch_size,
               'shuffle': True,
