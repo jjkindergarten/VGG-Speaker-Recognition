@@ -2,6 +2,7 @@ import os
 import json
 import numpy as np
 import pandas as pd
+from collections import Counter
 
 def initialize_GPU(args):
     # Initialize GPUs
@@ -106,18 +107,19 @@ def get_voxceleb2_datalist(args, path):
 
 def get_hike_datalist(args, path):
     def assgin_category(score):
-        if score <= 3:
+        if score <= 4:
             return 0
         elif score >= 7:
-            return 2
-        else:
             return 1
+        else:
+            return 2
     category = args.category.split('_')
     with open(path) as f:
         meta_list = json.load(f)
         audiolist = np.array([os.path.join(args.data_path, i[0]) for i in meta_list if i[2] in category])
         labellist = np.array([assgin_category(i[1]) for i in meta_list if i[2] in category])
         f.close()
+    print('class weight: {}'.format(Counter(labellist)))
     return audiolist, labellist
 
 def get_hike_datalist2(args, path):

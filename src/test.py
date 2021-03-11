@@ -78,6 +78,7 @@ def main():
     #       Get Model
     # ==================================
     # construct the data generator.
+    num_class = len(args.category.split('_'))
     input_length = int(args.audio_length * 100)
     params = {'dim': (257, None, 1),
               'mp_pooler': toolkits.set_mp(processes=args.multiprocess),
@@ -85,7 +86,7 @@ def main():
               'spec_len': input_length,
               'win_length': 400,
               'hop_length': 160,
-              'n_classes': 2,
+              'n_classes': num_class,
               'sampling_rate': 16000,
               'normalize': True,
               }

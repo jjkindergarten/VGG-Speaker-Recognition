@@ -5,6 +5,7 @@ import sys
 import keras
 import wandb
 from wandb.keras import WandbCallback
+from collections import  Counter
 import numpy as np
 import utils as ut
 
@@ -71,7 +72,10 @@ def main():
         vallist, vallb = toolkits.get_hike_datalist2(args, path=os.path.join(args.meta_data_path,
                                                                             'hike_val_{}.json'.format(args.seed)))
 
+
+
     input_length = int(args.audio_length * 100)
+    num_class = len(args.category.split('_'))
     # construct the data generator.
     params = {'dim': (257, input_length, 1),
               'mp_pooler': toolkits.set_mp(processes=args.multiprocess),
@@ -79,7 +83,7 @@ def main():
               'spec_len': input_length,
               'win_length': 400,
               'hop_length': 160,
-              'n_classes': len(set(trnlb)),
+              'n_classes': num_class,
               'sampling_rate': 16000,
               'batch_size': args.batch_size,
               'shuffle': True,
