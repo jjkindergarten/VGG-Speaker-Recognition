@@ -93,15 +93,15 @@ def main():
 
 
 
-    input_length = int(args.audio_length * 100)
+    input_length = int(args.audio_length * 25)
     num_class = len(trnlb)
     # construct the data generator.
-    params = {'dim': (257, input_length, 1),
+    params = {'dim': (513, input_length, 1),
               'mp_pooler': toolkits.set_mp(processes=args.multiprocess),
-              'nfft': 512,
+              'nfft': 1024,
               'spec_len': input_length,
-              'win_length': 400,
-              'hop_length': 160,
+              'win_length': 1024,
+              'hop_length': 640,
               'n_classes': num_class,
               'sampling_rate': 16000,
               'batch_size': args.batch_size,

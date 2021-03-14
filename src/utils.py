@@ -27,15 +27,15 @@ def load_wav(vid_path, sr, mode='train'):
     wav, sr_ret = librosa.load(vid_path, sr=sr)
     assert sr_ret == sr
 
-    if mode == 'train':
-        extended_wav = np.append(wav, wav)
-        if np.random.random() < 0.3:
-            extended_wav = extended_wav[::-1]
-        return extended_wav
-    else:
-        extended_wav = np.append(wav, wav[::-1])
-        return extended_wav
-
+    # if mode == 'train':
+    #     extended_wav = np.append(wav, wav)
+    #     if np.random.random() < 0.3:
+    #         extended_wav = extended_wav[::-1]
+    #     return extended_wav
+    # else:
+    #     extended_wav = np.append(wav, wav[::-1])
+    #     return extended_wav
+    return wav
 
 def lin_spectogram_from_wav(wav, hop_length, win_length, n_fft=1024):
     linear = librosa.stft(wav, n_fft=n_fft, win_length=win_length, hop_length=hop_length) # linear spectrogram
