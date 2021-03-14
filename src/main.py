@@ -46,6 +46,8 @@ parser.add_argument('--seed', default=2, type=int, help='seed for which dataset 
 parser.add_argument('--data_format', default='wav', choices=['wav', 'npy'], type=str)
 parser.add_argument('--audio_length', default=2.5, type=float)
 parser.add_argument('--category', default='high_low', type=str)
+parser.add_argument('--extra_data_path', default='', type=str, help='data path ')
+parser.add_argument('--extra_meta_path', default='', type=str)
 global args
 args = parser.parse_args()
 
@@ -60,22 +62,39 @@ def main():
     # ==================================
     #       Get Train/Val.
     # ==================================
-
+    category = args.category.split('_')
     if args.loss != 'regression':
-        trnlist, trnlb = toolkits.get_hike_datalist(args, path=os.path.join(args.meta_data_path,
-                                                                            'hike_train_{}.json'.format(args.seed)))
-        vallist, vallb = toolkits.get_hike_datalist(args, path=os.path.join(args.meta_data_path,
-                                                                            'hike_val_{}.json'.format(args.seed)))
+        trnlist, trnlb = toolkits.get_hike_datalist(category, meta_path=os.path.join(args.meta_data_path,
+                                                                            'hike_train_{}.json'.format(args.seed)),
+                                                    data_path=args.data_path)
+        vallist, vallb = toolkits.get_hike_datalist(category, meta_path=os.path.join(args.meta_data_path,
+                                                                            'hike_val_{}.json'.format(args.seed)),
+                                                    data_path=args.data_path)
+        if args.extra_meta_path != '':
+            ex_trnlist, ex_trnlb = toolkits.get_hike_datalist(category, meta_path=os.path.join(args.meta_data_path,
+                                                                            'hike_train_{}.json'.format(args.seed)),
+                                                    data_path=args.data_path)
+            trnlist = np.concatenate([trnlist, ex_trnlist], axis=0)
+            trnlb = np.concatenate([trnlb, ex_trnlb], axis=0)
+
     else:
-        trnlist, trnlb = toolkits.get_hike_datalist2(args, path=os.path.join(args.meta_data_path,
-                                                                            'hike_train_{}.json'.format(args.seed)))
-        vallist, vallb = toolkits.get_hike_datalist2(args, path=os.path.join(args.meta_data_path,
-                                                                            'hike_val_{}.json'.format(args.seed)))
+        trnlist, trnlb = toolkits.get_hike_datalist2(category, meta_path=os.path.join(args.meta_data_path,
+                                                                            'hike_train_{}.json'.format(args.seed)),
+                                                     data_path=args.data_path)
+        vallist, vallb = toolkits.get_hike_datalist2(category, meta_path=os.path.join(args.meta_data_path,
+                                                                            'hike_val_{}.json'.format(args.seed)),
+                                                     data_path=args.data_path)
+        if args.extra_meta_path != '':
+            ex_trnlist, ex_trnlb = toolkits.get_hike_datalist2(category, meta_path=os.path.join(args.meta_data_path,
+                                                                                'hike_train_{}.json'.format(args.seed)),
+                                                                data_path=args.data_path)
+            trnlist = np.concatenate([trnlist, ex_trnlist], axis=0)
+            trnlb = np.concatenate([trnlb, ex_trnlb], axis=0)
 
 
 
     input_length = int(args.audio_length * 100)
-    num_class = len(args.category.split('_'))
+    num_class = len(trnlb)
     # construct the data generator.
     params = {'dim': (257, input_length, 1),
               'mp_pooler': toolkits.set_mp(processes=args.multiprocess),

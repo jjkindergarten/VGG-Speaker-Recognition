@@ -105,7 +105,7 @@ def get_voxceleb2_datalist(args, path):
         f.close()
     return audiolist, labellist
 
-def get_hike_datalist(args, path):
+def get_hike_datalist(category, meta_path, data_path):
     def assgin_category(score):
         if score <= 4:
             return 0
@@ -113,24 +113,26 @@ def get_hike_datalist(args, path):
             return 1
         else:
             return 2
-    category = args.category.split('_')
-    with open(path) as f:
+    category = category.split('_')
+    with open(meta_path) as f:
         meta_list = json.load(f)
-        audiolist = np.array([os.path.join(args.data_path, i[0]) for i in meta_list if i[2] in category])
+        audiolist = np.array([os.path.join(data_path, i[0]) for i in meta_list if i[2] in category])
         labellist = np.array([assgin_category(i[1]) for i in meta_list if i[2] in category])
         f.close()
     print('class weight: {}'.format(Counter(labellist)))
     return audiolist, labellist
 
-def get_hike_datalist2(args, path):
-    category = args.category.split('_')
-    with open(path) as f:
+def get_hike_datalist2(category, meta_path, data_path):
+
+    with open(meta_path) as f:
         meta_list = json.load(f)
-        audiolist = np.array([os.path.join(args.data_path, i[0]) for i in meta_list if i[2] in category])
+        audiolist = np.array([os.path.join(data_path, i[0]) for i in meta_list if i[2] in category])
         scorelist = np.array([i[1] for i in meta_list if i[2] in category])
         scorelist = (scorelist-5)/10
         f.close()
     return audiolist, scorelist
+
+
 
 def calculate_eer(y, y_score):
     # y denotes groundtruth scores,
