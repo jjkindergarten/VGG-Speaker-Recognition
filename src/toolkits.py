@@ -195,9 +195,8 @@ def get_content_prob(path, classification, args):
     assert len(classification) == len(contentlist)
     df = np.hstack([contentlist.reshape(-1,1), classification])
     df = pd.DataFrame(data=df, columns=['content', 'prob_0', 'prob_1', 'true_label'])
-    df = df.sort_values(by='content', ignore_index=True)
-    df = df.astype({'prob_0': 'float', 'prob_1': 'float'})
-    df_content = df.groupby(['content']).mean()
-    print(df_content)
-
+    # df = df.sort_values(by='content', ignore_index=True)
+    # df = df.astype({'prob_0': 'float', 'prob_1': 'float', 'true_label':'float'})
+    # df_content = df.groupby(['content']).mean()
+    print(df)
 

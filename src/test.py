@@ -124,10 +124,11 @@ def main():
         val_data = ut.load_data(ID, params['win_length'], params['sampling_rate'], params['hop_length'],params['nfft'],
                      params['spec_len'], 'test', args.data_format)
         info = network_eval.predict(np.expand_dims(val_data, (0, -1)))
-        v += info
+        v += info.tolist()
 
-    print(val_data.shape)
-    v = network_eval.predict(val_data)
+    v = np.array(v)
+    print(v.shape)
+    print(vallb.reshape(-1, 1).shape)
     if args.loss == 'regression':
         v = v.T[0] * 10 + 5
         vallb = vallb * 10 + 5
@@ -138,11 +139,11 @@ def main():
         v_test = np.vstack([v, vallb]).astype('float').T
         toolkits.get_content_score(args.meta_data_path, v_test, args)
     else:
-        v_test = np.stack([v, vallb]).astype('float').T
-        toolkits.get_content_score(args.meta_data_path, v_test, args)
+        v_test = np.hstack([v, vallb.reshape(-1, 1)]).astype('float')
+        toolkits.get_content_prob(args.meta_data_path, v_test, args)
         v_predict = ((v<0.5)*1)[:,0]
         acc = sum(v_predict==vallb)/len(vallb)
-        print('confusion matrix: ', confusion_matrix(vallb, v))
+        print('confusion matrix: ', confusion_matrix(vallb, v_predict))
         print(v_predict)
         print(vallb)
         print(acc)
