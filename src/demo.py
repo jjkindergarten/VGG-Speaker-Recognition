@@ -17,7 +17,7 @@ parser = argparse.ArgumentParser()
 # set up training configuration.
 parser.add_argument('--gpu', default='', type=str)
 parser.add_argument('--resume', default='../../model_weight/weights-100-0.028.h5', type=str)
-parser.add_argument('--data_path', default='../../../../data/spec_data_OTR', type=str)
+parser.add_argument('--data_path', default='../../../../data/spec_data_OTR2', type=str)
 # set up network configuration.
 parser.add_argument('--net', default='resnet34s', choices=['resnet34s', 'resnet34l'], type=str)
 parser.add_argument('--ghost_cluster', default=2, type=int)
@@ -25,7 +25,7 @@ parser.add_argument('--vlad_cluster', default=8, type=int)
 parser.add_argument('--bottleneck_dim', default=16, type=int)
 parser.add_argument('--aggregation_mode', default='gvlad', choices=['avg', 'vlad', 'gvlad'], type=str)
 # set up learning rate, training loss and optimizer.
-parser.add_argument('--loss', default='regression', choices=['softmax', 'amsoftmax', 'regression'], type=str)
+parser.add_argument('--loss', default='softmax', choices=['softmax', 'amsoftmax', 'regression'], type=str)
 
 global args
 args = parser.parse_args()
@@ -37,10 +37,10 @@ def main():
 
     import model
 
-    params = {'dim': (257, None, 1),
-              'n_fft': 512,
-              'win_length': 400,
-              'hop_length': 160,
+    params = {'dim': (513, None, 1),
+              'n_fft': 1024,
+              'win_length': 1024,
+              'hop_length': 640,
               'n_classes': 2,
               'sampling_rate': 16000,
               'normalize': True,
@@ -79,8 +79,13 @@ def main():
     std = np.std(spec_mag*(10**5), 0, keepdims=True)/(10**5)
     spec_mag = (spec_mag - mu) / (std + 1e-3)
     spec_mag = np.expand_dims(spec_mag, (0, -1))
-    v = network_eval.predict(spec_mag) * 10 + 5
-    print('the predicted score is: {}'.format(v))
+    print(spec_mag.shape)
+    if args.loss == 'regression':
+        v = network_eval.predict(spec_mag) * 10 + 5
+        print('the predicted score is: {}'.format(v))
+    else:
+        v = network_eval.predict(spec_mag)
+        print(v)
 
 if __name__ == '__main__':
     main()

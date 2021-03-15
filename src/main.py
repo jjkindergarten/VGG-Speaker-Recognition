@@ -94,7 +94,7 @@ def main():
 
 
     input_length = int(args.audio_length * 25)
-    num_class = len(trnlb)
+    num_class = len(set(trnlb))
     # construct the data generator.
     params = {'dim': (513, input_length, 1),
               'mp_pooler': toolkits.set_mp(processes=args.multiprocess),
@@ -145,6 +145,7 @@ def main():
     print('==> gpu {} is, training {} images, classes: 0-{} '
           'loss: {}, aggregation: {}, ohemlevel: {}'.format(args.gpu, len(partition['train']), np.max(labels['train']),
                                                             args.loss, args.aggregation_mode, args.ohem_level))
+    print(val_data.shape)
 
     model_path, log_path = set_path(args)
     normal_lr = keras.callbacks.LearningRateScheduler(step_decay)
