@@ -47,17 +47,22 @@ def main():
     #       Get Train/Val.
     # ==================================
     # print('==> calculating test({}) data lists...'.format(args.test_type))
+    category = args.category.split('_')
     if args.loss != 'regression':
-        testlist, testlb = toolkits.get_hike_datalist(args, path=os.path.join(args.meta_data_path,
-                                                                               'hike_test_{}.json'.format(args.seed)))
-        vallist, vallb = toolkits.get_hike_datalist(args, path=os.path.join(args.meta_data_path,
-                                                                             'hike_val_{}.json'.format(args.seed)))
+        testlist, testlb = toolkits.get_hike_datalist(category, meta_path=os.path.join(args.meta_data_path,
+                                                                            'hike_test_{}.json'.format(args.seed)),
+                                                    data_path=args.data_path)
+        vallist, vallb = toolkits.get_hike_datalist(category, meta_path=os.path.join(args.meta_data_path,
+                                                                            'hike_val_{}.json'.format(args.seed)),
+                                                    data_path=args.data_path)
 
     else:
-        testlist, testlb = toolkits.get_hike_datalist2(args, path=os.path.join(args.meta_data_path,
-                                                                               'hike_test_{}.json'.format(args.seed)))
-        vallist, vallb = toolkits.get_hike_datalist2(args, path=os.path.join(args.meta_data_path,
-                                                                             'hike_val_{}.json'.format(args.seed)))
+        testlist, testlb = toolkits.get_hike_datalist2(category, meta_path=os.path.join(args.meta_data_path,
+                                                                            'hike_test_{}.json'.format(args.seed)),
+                                                    data_path=args.data_path)
+        vallist, vallb = toolkits.get_hike_datalist2(category, meta_path=os.path.join(args.meta_data_path,
+                                                                            'hike_val_{}.json'.format(args.seed)),
+                                                    data_path=args.data_path)
 
     vallist = np.concatenate([vallist, testlist])
     vallb = np.concatenate([vallb, testlb])
@@ -78,14 +83,14 @@ def main():
     #       Get Model
     # ==================================
     # construct the data generator.
-    num_class = len(args.category.split('_'))
-    input_length = int(args.audio_length * 100)
-    params = {'dim': (257, None, 1),
+    num_class = len(set(vallb))
+    input_length = int(args.audio_length * 25)
+    params = {'dim': (513, None, 1),
               'mp_pooler': toolkits.set_mp(processes=args.multiprocess),
-              'nfft': 512,
+              'nfft': 1024,
               'spec_len': input_length,
-              'win_length': 400,
-              'hop_length': 160,
+              'win_length': 1024,
+              'hop_length': 640,
               'n_classes': num_class,
               'sampling_rate': 16000,
               'normalize': True,
