@@ -64,7 +64,7 @@ def main():
 
     print('==> start testing.')
     if sum([args.data_path.endswith(i) for i in ['.wav', '.m4a', 'mp3']]) == 1:
-        wav, sr_ret = librosa.load(args.data_path, sr=params['sampling_rate'], offset=5, duration=20)
+        wav, sr_ret = librosa.load(args.data_path, sr=params['sampling_rate'], offset=5)
         linear_spect = ut.lin_spectogram_from_wav(wav, params['hop_length'], params['win_length'], params['n_fft'])
         print('sample_rate is ', sr_ret)
     elif args.data_path.endswith('.npy'):
