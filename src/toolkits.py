@@ -113,7 +113,6 @@ def get_hike_datalist(category, meta_path, data_path):
             return 1
         else:
             return 2
-    category = category.split('_')
     with open(meta_path) as f:
         meta_list = json.load(f)
         audiolist = np.array([os.path.join(data_path, i[0]) for i in meta_list if i[2] in category])
