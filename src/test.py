@@ -3,6 +3,7 @@ from __future__ import print_function
 import os
 import sys
 import numpy as np
+from sklearn.metrics import confusion_matrix
 
 sys.path.append('../tool')
 import toolkits
@@ -114,13 +115,16 @@ def main():
 
     print('==> start testing.')
 
-    val_data = [params['mp_pooler'].apply_async(ut.load_data,
-                                    args=(ID, params['win_length'], params['sampling_rate'], params['hop_length'],
-                                          params['nfft'], params['spec_len'], 'test', args.data_format)) for ID in vallist]
-    val_data = np.expand_dims(np.array([p.get() for p in val_data]), -1)
-    # for ID in vallist:
-    #     val_data = ut.load_data(ID, params['win_length'], params['sampling_rate'], params['hop_length'],params['nfft'],
-    #                  params['spec_len'], 'train', args.data_format)
+    # val_data = [params['mp_pooler'].apply_async(ut.load_data,
+    #                                 args=(ID, params['win_length'], params['sampling_rate'], params['hop_length'],
+    #                                       params['nfft'], params['spec_len'], 'test', args.data_format)) for ID in vallist]
+    # val_data = np.expand_dims(np.array([p.get() for p in val_data]), -1)
+    v = []
+    for ID in vallist:
+        val_data = ut.load_data(ID, params['win_length'], params['sampling_rate'], params['hop_length'],params['nfft'],
+                     params['spec_len'], 'test', args.data_format)
+        info = network_eval.predict(np.expand_dims(val_data, (0, -1)))
+        v += info
 
     print(val_data.shape)
     v = network_eval.predict(val_data)
@@ -134,9 +138,12 @@ def main():
         v_test = np.vstack([v, vallb]).astype('float').T
         toolkits.get_content_score(args.meta_data_path, v_test, args)
     else:
-        v = ((v<0.5)*1)[:,0]
-        acc = sum(v==vallb)/len(vallb)
-        print(v)
+        v_test = np.stack([v, vallb]).astype('float').T
+        toolkits.get_content_score(args.meta_data_path, v_test, args)
+        v_predict = ((v<0.5)*1)[:,0]
+        acc = sum(v_predict==vallb)/len(vallb)
+        print('confusion matrix: ', confusion_matrix(vallb, v))
+        print(v_predict)
         print(vallb)
         print(acc)
 

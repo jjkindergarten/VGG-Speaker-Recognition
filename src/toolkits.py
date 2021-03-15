@@ -178,3 +178,26 @@ def get_content_score(path, score, args):
     df_content = df.groupby(['content']).mean()
     print(df_content)
     print('mse by content: ', np.square(np.subtract(df_content.values[:,0], df_content.values[:,1])).mean())
+
+def get_content_prob(path, classification, args):
+    category = args.category.split('_')
+    with open(os.path.join(path, 'hike_val_{}.json'.format(args.seed)), 'r') as f:
+        meta_list_val = json.load(f)
+        contentlist_val = [i[3] for i in meta_list_val if i[2] in category]
+    with open(os.path.join(path, 'hike_test_{}.json'.format(args.seed)), 'r') as f:
+        meta_list_test = json.load(f)
+        contentlist_test = [i[3] for i in meta_list_test if i[2] in category]
+
+    contentlist = np.array(contentlist_val + contentlist_test)
+
+    print(len(classification))
+    print(len(contentlist))
+    assert len(classification) == len(contentlist)
+    df = np.hstack([contentlist.reshape(-1,1), classification])
+    df = pd.DataFrame(data=df, columns=['content', 'prob_0', 'prob_1', 'true_label'])
+    df = df.sort_values(by='content', ignore_index=True)
+    df = df.astype({'prob_0': 'float', 'prob_1': 'float'})
+    df_content = df.groupby(['content']).mean()
+    print(df_content)
+
+
