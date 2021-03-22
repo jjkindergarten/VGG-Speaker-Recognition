@@ -78,7 +78,6 @@ def amsoftmax_loss(y_true, y_pred, scale=30, margin=0.35):
 
 
 def vggvox_resnet2d_icassp(input_dim=(257, 250, 1), num_class=8631, mode='train', args=None):
-    net=args['net']
     loss=args['loss']
     vlad_clusters=args['vlad_cluster']
     ghost_clusters=args['ghost_cluster']
@@ -86,10 +85,8 @@ def vggvox_resnet2d_icassp(input_dim=(257, 250, 1), num_class=8631, mode='train'
     aggregation = args['aggregation_mode']
     mgpu = len(keras.backend.tensorflow_backend._get_available_gpus())
 
-    if net == 'resnet34s':
-        inputs, x = backbone.resnet_2D_v1(input_dim=input_dim, mode=mode)
-    else:
-        inputs, x = backbone.resnet_2D_v2(input_dim=input_dim, mode=mode)
+    inputs, x = backbone.resnet_2D_v1(input_dim=input_dim, mode=mode)
+
     # ===============================================
     #            Fully Connected Block 1
     # ===============================================
