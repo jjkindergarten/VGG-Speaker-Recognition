@@ -60,7 +60,7 @@ class DataGenerator(keras.utils.Sequence):
         X = np.expand_dims(np.array([p.get() for p in X]), -1)
         y = self.labels[indexes]
 
-        if self.loss != 'regression':
+        if self.loss != 'mse':
             return X, keras.utils.to_categorical(y, num_classes=self.n_classes)
         else:
             return X, y
@@ -80,7 +80,7 @@ class DataGenerator(keras.utils.Sequence):
             # Store class
             y[i] = self.labels[indexes[i]]
 
-        if self.loss != 'regression':
+        if self.loss != 'mse':
             return X, keras.utils.to_categorical(y, num_classes=self.n_classes)
         else:
             return X, y
