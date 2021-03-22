@@ -143,11 +143,11 @@ def get_hike_datalist(meta_paths, data_paths, mode='mse'):
         data_path = data_paths[i]
         with open(meta_path) as f:
             meta_list = json.load(f)
-            audiolist += [os.path.join(data_path, i[0]) for i in meta_list if score_filter(filter_rule, i[2])]
+            audiolist += [os.path.join(data_path, i[0]) for i in meta_list if score_filter(filter_rule, i[1])]
             if mode != 'mse':
-                labellist += [assign_category(score_rule, i[2]) for i in meta_list if score_filter(filter_rule, i[2])]
+                labellist += [assign_category(score_rule, i[1]) for i in meta_list if score_filter(filter_rule, i[1])]
             else:
-                labellist += [i[2] for i in meta_list if i[2] in score_filter(filter_rule, i[2])]
+                labellist += [i[1] for i in meta_list if score_filter(filter_rule, i[1])]
             f.close()
     audiolist = np.array(audiolist)
     labellist = np.array(labellist)

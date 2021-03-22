@@ -25,10 +25,10 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--gpu', default='', type=str)
 parser.add_argument('--resume', default='', type=str)
 # parser.add_argument('--batch_size', default=64, type=int)
-parser.add_argument('--train_data_path', default='../../D2_data/audio_data_OTR', type=str, action='append', nargs='*')
-parser.add_argument('--train_meta_data_path', default='../../D2_data/meta2', type=str, action='append', nargs='*')
-parser.add_argument('--val_data_path', default='../../D2_data/audio_data_OTR', type=str, action='append', nargs='*')
-parser.add_argument('--val_meta_data_path', default='../../D2_data/meta2', type=str, action='append', nargs='*')
+parser.add_argument('--train_data_path', default='../../D2_data/audio_data_OTR', type=str, nargs='*')
+parser.add_argument('--train_meta_data_path', default='../../D2_data/meta2', type=str, nargs='*')
+parser.add_argument('--val_data_path', default='../../D2_data/audio_data_OTR', type=str, nargs='*')
+parser.add_argument('--val_meta_data_path', default='../../D2_data/meta2', type=str, nargs='*')
 parser.add_argument('--record_path', default='../../D2_data/record', type=str)
 parser.add_argument('--multiprocess', default=12, type=int)
 # set up network configuration.
@@ -69,8 +69,8 @@ def main():
     # ==================================
     #       Get Train/Val.
     # ==================================
-    trnlist, trnlb = toolkits.get_hike_datalist(meta_path=args.train_meta_data_path, data_path=args.train_data_path, mode=model_config['loss'])
-    vallist, vallb = toolkits.get_hike_datalist(meta_path=args.val_meta_data_path, data_path=args.val_data_path, mode=model_config['loss'])
+    trnlist, trnlb = toolkits.get_hike_datalist(meta_paths=args.train_meta_data_path, data_paths=args.train_data_path, mode=model_config['loss'])
+    vallist, vallb = toolkits.get_hike_datalist(meta_paths=args.val_meta_data_path, data_paths=args.val_data_path, mode=model_config['loss'])
 
     input_length = int(args.audio_length * 25)
     num_class = len(score_rule)
@@ -83,7 +83,7 @@ def main():
               'hop_length': 640,
               'n_classes': num_class,
               'sampling_rate': 16000,
-              'batch_size': args.batch_size,
+              'batch_size': model_config['batch_size'],
               'shuffle': True,
               'normalize': True,
               'loss': model_config['loss'],
@@ -221,19 +221,18 @@ def set_path(args, model_config):
     import datetime
     date = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
     loss = model_config['loss']
-    net = model_config['net']
     batch_size = model_config['batch_size']
     bottleneck_dim = model_config['bottleneck_dim']
 
     if model_config['aggregation_mode'] == 'avg':
         exp_path = os.path.join(model_config['aggregation_mode']+'_{}'.format(loss),
-                                '{}_{}_bs{}_bdim{}'.format(date, net, batch_size, bottleneck_dim))
+                                '{}_bs{}_bdim{}'.format(date, batch_size, bottleneck_dim))
     elif model_config['aggregation_mode'] == 'vlad':
         exp_path = os.path.join(model_config['aggregation_mode']+'_{}'.format(loss),
-                                '{}_{}_bs{}_bdim{}'.format(date, net, batch_size, bottleneck_dim))
+                                '{}_bs{}_bdim{}'.format(date, batch_size, bottleneck_dim))
     elif model_config['aggregation_mode'] == 'gvlad':
         exp_path = os.path.join(model_config['aggregation_mode']+'_{}'.format(loss),
-                                '{}_{}_bs{}_bdim{}'.format(date, net, batch_size, bottleneck_dim))
+                                '{}_bs{}_bdim{}'.format(date, batch_size, bottleneck_dim))
     else:
         raise IOError('==> unknown aggregation mode.')
     model_path = os.path.join(args.record_path, 'model', exp_path)
