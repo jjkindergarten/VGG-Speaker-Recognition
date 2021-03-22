@@ -78,12 +78,12 @@ def amsoftmax_loss(y_true, y_pred, scale=30, margin=0.35):
 
 
 def vggvox_resnet2d_icassp(input_dim=(257, 250, 1), num_class=8631, mode='train', args=None):
-    net=args.net
-    loss=args.loss
-    vlad_clusters=args.vlad_cluster
-    ghost_clusters=args.ghost_cluster
-    bottleneck_dim=args.bottleneck_dim
-    aggregation = args.aggregation_mode
+    net=args['net']
+    loss=args['loss']
+    vlad_clusters=args['vlad_cluster']
+    ghost_clusters=args['ghost_cluster']
+    bottleneck_dim=args['bottleneck_dim']
+    aggregation = args['aggregation_mode']
     mgpu = len(keras.backend.tensorflow_backend._get_available_gpus())
 
     if net == 'resnet34s':
@@ -169,7 +169,7 @@ def vggvox_resnet2d_icassp(input_dim=(257, 250, 1), num_class=8631, mode='train'
                                name='prediction')(x_l2)
         trnloss = amsoftmax_loss
 
-    elif loss == 'regression':
+    elif loss == 'mse':
         y = keras.layers.Dense(1, activation=None,
                                kernel_initializer='orthogonal',
                                use_bias=False, trainable=True,
@@ -189,10 +189,10 @@ def vggvox_resnet2d_icassp(input_dim=(257, 250, 1), num_class=8631, mode='train'
         if mgpu > 1:
             model = ModelMGPU(model, gpus=mgpu)
         # set up optimizer.
-        if args.optimizer == 'adam':  opt = keras.optimizers.Adam(lr=1e-3)
-        elif args.optimizer =='sgd':  opt = keras.optimizers.SGD(lr=0.1, momentum=0.9, decay=0.0, nesterov=True)
+        if args['optimizer'] == 'adam':  opt = keras.optimizers.Adam(lr=1e-3)
+        elif args['optimizer'] =='sgd':  opt = keras.optimizers.SGD(lr=0.1, momentum=0.9, decay=0.0, nesterov=True)
         else: raise IOError('==> unknown optimizer type')
-        if loss != 'regression':
+        if loss != 'mse':
             model.compile(optimizer=opt, loss=trnloss, metrics=['acc'])
         else:
             model.compile(optimizer=opt, loss=trnloss, metrics=[tf.keras.metrics.MeanSquaredError()])

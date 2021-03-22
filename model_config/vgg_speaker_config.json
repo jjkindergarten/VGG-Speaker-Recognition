@@ -1,0 +1,13 @@
+{
+  "ghost_cluster" : 2,
+  "vlad_cluster": 10,
+  "aggregation_mode": "gvlad",
+  "bottleneck_dim": 16,
+  "loss": "mse",
+  "optimizer": "adam",
+  "lr": 0.001,
+  "warmup_ratio": 0.1,
+  "epoch": 50,
+  "batch_size": 16,
+  "ohem_level": 0
+}

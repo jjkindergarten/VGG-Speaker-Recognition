@@ -4,6 +4,15 @@ import numpy as np
 import pandas as pd
 from collections import Counter
 
+score_rule_file = '../../model_config/classification_rule.json'
+filter_rule_file = '../../model_config/filter_rule.json'
+with open(score_rule_file, 'r') as f:
+    score_rule = json.load(f)
+    f.close()
+with open(filter_rule_file, 'r') as f:
+    filter_rule = json.load(f)
+    f.close()
+
 def initialize_GPU(args):
     # Initialize GPUs
     import tensorflow as tf
@@ -105,33 +114,48 @@ def get_voxceleb2_datalist(args, path):
         f.close()
     return audiolist, labellist
 
-def get_hike_datalist(category, meta_path, data_path):
-    def assgin_category(score):
-        if score <= 4:
-            return 0
-        elif score >= 7:
-            return 1
-        else:
+def assign_category(score_rule, score):
+    assert 'low' in score_rule
+    assert 'high' in score_rule
+    if (score <= score_rule['low']['max']) and (score > score_rule['low']['min']):
+        return 0
+    elif (score <= score_rule['high']['max']) and (score > score_rule['low']['min']):
+        return 1
+    elif 'medium' in score_rule:
+        if (score <= score_rule['medium']['max']) and (score > score_rule['medium']['min']):
             return 2
-    with open(meta_path) as f:
-        meta_list = json.load(f)
-        audiolist = np.array([os.path.join(data_path, i[0]) for i in meta_list if i[2] in category])
-        labellist = np.array([assgin_category(i[1]) for i in meta_list if i[2] in category])
-        f.close()
-    print('class weight: {}'.format(Counter(labellist)))
+
+    raise ValueError('{} cannot be categoried!'.format(score))
+
+def score_filter(filter_rule, score):
+    for rule in filter_rule:
+        if (score >= min(rule)) and (score <= max(rule)):
+            return True
+    else:
+        return False
+
+def get_hike_datalist(meta_paths, data_paths, mode='mse'):
+    assert len(meta_paths) == len(data_paths)
+    audiolist = []
+    labellist = []
+    for i in range(len(meta_paths)):
+        meta_path = meta_paths[i]
+        data_path = data_paths[i]
+        with open(meta_path) as f:
+            meta_list = json.load(f)
+            audiolist += [os.path.join(data_path, i[0]) for i in meta_list if score_filter(filter_rule, i[2])]
+            if mode != 'mse':
+                labellist += [assign_category(score_rule, i[2]) for i in meta_list if score_filter(filter_rule, i[2])]
+            else:
+                labellist += [i[2] for i in meta_list if i[2] in score_filter(filter_rule, i[2])]
+            f.close()
+    audiolist = np.array(audiolist)
+    labellist = np.array(labellist)
+    if mode == 'mse':
+        labellist = (labellist - 5) / 10
+    else:
+        print('class weight: {}'.format(Counter(labellist)))
     return audiolist, labellist
-
-def get_hike_datalist2(category, meta_path, data_path):
-
-    with open(meta_path) as f:
-        meta_list = json.load(f)
-        audiolist = np.array([os.path.join(data_path, i[0]) for i in meta_list if i[2] in category])
-        scorelist = np.array([i[1] for i in meta_list if i[2] in category])
-        scorelist = (scorelist-5)/10
-        f.close()
-    return audiolist, scorelist
-
-
 
 def calculate_eer(y, y_score):
     # y denotes groundtruth scores,
@@ -157,46 +181,25 @@ def sync_model(src_model, tgt_model):
             l.set_weights(params['{}'.format(l.name)])
     return tgt_model
 
-def get_content_score(path, score, args):
-    category = args.category.split('_')
-    with open(os.path.join(path, 'hike_val_{}.json'.format(args.seed)), 'r') as f:
-        meta_list_val = json.load(f)
-        contentlist_val = [i[3] for i in meta_list_val if i[2] in category]
-    with open(os.path.join(path, 'hike_test_{}.json'.format(args.seed)), 'r') as f:
-        meta_list_test = json.load(f)
-        contentlist_test = [i[3] for i in meta_list_test if i[2] in category]
+def get_content_score(path, score):
+    with open(path, 'r') as f:
+        meta_list = json.load(f)
+        contentlist = np.array([i[3] for i in meta_list if score_filter(filter_rule, i[2])])
 
-    contentlist = np.array(contentlist_val + contentlist_test)
-
-    print(len(score))
-    print(len(contentlist))
     assert len(score) == len(contentlist)
     df = np.hstack([contentlist.reshape(-1,1), score])
     df = pd.DataFrame(data=df, columns=['content', 'score_predict', 'score_true'])
     df = df.sort_values(by='content', ignore_index=True)
     df = df.astype({'score_predict': 'float', 'score_true': 'float'})
-    df_content = df.groupby(['content']).mean()
-    print(df_content)
-    print('mse by content: ', np.square(np.subtract(df_content.values[:,0], df_content.values[:,1])).mean())
+    return df
 
-def get_content_prob(path, classification, args):
-    category = args.category.split('_')
-    with open(os.path.join(path, 'hike_val_{}.json'.format(args.seed)), 'r') as f:
-        meta_list_val = json.load(f)
-        contentlist_val = [i[3] for i in meta_list_val if i[2] in category]
-    with open(os.path.join(path, 'hike_test_{}.json'.format(args.seed)), 'r') as f:
-        meta_list_test = json.load(f)
-        contentlist_test = [i[3] for i in meta_list_test if i[2] in category]
+def get_content_prob(path, classification):
+    with open(path, 'r') as f:
+        meta_list = json.load(f)
+        contentlist = np.array([i[3] for i in meta_list if score_filter(filter_rule, i[2])])
 
-    contentlist = np.array(contentlist_val + contentlist_test)
-
-    print(len(classification))
-    print(len(contentlist))
     assert len(classification) == len(contentlist)
     df = np.hstack([contentlist.reshape(-1,1), classification])
     df = pd.DataFrame(data=df, columns=['content', 'prob_0', 'prob_1', 'true_label'])
-    # df = df.sort_values(by='content', ignore_index=True)
-    # df = df.astype({'prob_0': 'float', 'prob_1': 'float', 'true_label':'float'})
-    # df_content = df.groupby(['content']).mean()
-    print(df)
+    return df
 

@@ -17,15 +17,15 @@ parser = argparse.ArgumentParser()
 # set up training configuration.
 parser.add_argument('--gpu', default='', type=str)
 parser.add_argument('--resume', default='../../model_weight/weights-100-0.028.h5', type=str)
-parser.add_argument('--data_path', default='../../../../data/spec_data_OTR2', type=str)
+parser.add_argument('--data_path', default='../../../../data/spec_data_OTR2', type=str, action='append', nargs='*')
 # set up network configuration.
-parser.add_argument('--net', default='resnet34s', choices=['resnet34s', 'resnet34l'], type=str)
-parser.add_argument('--ghost_cluster', default=2, type=int)
-parser.add_argument('--vlad_cluster', default=8, type=int)
-parser.add_argument('--bottleneck_dim', default=16, type=int)
-parser.add_argument('--aggregation_mode', default='gvlad', choices=['avg', 'vlad', 'gvlad'], type=str)
+# parser.add_argument('--net', default='resnet34s', choices=['resnet34s', 'resnet34l'], type=str)
+# parser.add_argument('--ghost_cluster', default=2, type=int)
+# parser.add_argument('--vlad_cluster', default=8, type=int)
+# parser.add_argument('--bottleneck_dim', default=16, type=int)
+# parser.add_argument('--aggregation_mode', default='gvlad', choices=['avg', 'vlad', 'gvlad'], type=str)
 # set up learning rate, training loss and optimizer.
-parser.add_argument('--loss', default='softmax', choices=['softmax', 'amsoftmax', 'regression'], type=str)
+# parser.add_argument('--loss', default='softmax', choices=['softmax', 'amsoftmax', 'regression'], type=str)
 
 global args
 args = parser.parse_args()
