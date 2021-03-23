@@ -53,7 +53,7 @@ def calculate_acc(content_table, score_rule):
         content_select = ((content_select > min_threshold) & (content_select < max_threshold)) * 1
         acc = sum(content_select['score_true'] == content_select['score_predict']) / len(content_select)
         print('accuracy of category {} is: {}'.format(cate, acc))
-    result = content_table.apply(lambda x: assign_category(score_rule, x))
+    result = content_table.applymap(lambda x: assign_category(score_rule, x))
     print('confusion matrix: ')
     print(confusion_matrix(result['score_true'].values, result['score_predict'].values))
 
