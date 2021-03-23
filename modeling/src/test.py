@@ -36,7 +36,7 @@ parser.add_argument('--test_meta_data_path', default='../../../D2_data/meta2', t
 parser.add_argument('--save_dir', default='', type=str)
 # parser.add_argument('--seed', default=2, type=int, help='seed for which dataset to use')
 parser.add_argument('--data_format', default='wav', choices=['wav', 'npy'], type=str)
-parser.add_argument('--audio_length', default=2.5, type=float)
+parser.add_argument('--audio_length', default=20, type=float)
 # parser.add_argument('--category', default='high_low', type=str)
 
 global args
@@ -63,8 +63,8 @@ def main():
     # ==================================
     #       Get Train/Val.
     # ==================================
-    vallist, vallb = toolkits.get_hike_datalist(meta_paths=args.meta_data_path, data_paths=args.data_path, mode=model_config['loss'])
-    _, valscore = toolkits.get_hike_datalist(meta_paths=args.meta_data_path, data_paths=args.data_path, mode='mse')
+    vallist, vallb = toolkits.get_hike_datalist(meta_paths=args.test_meta_data_path, data_paths=args.test_data_path, mode=model_config['loss'])
+    _, valscore = toolkits.get_hike_datalist(meta_paths=args.test_meta_data_path, data_paths=args.test_data_path, mode='mse')
 
     # ==================================
     #       Get Model
@@ -101,14 +101,14 @@ def main():
     print('==> start testing.')
 
     v = []
-    for ID in vallist:
+    for ID in vallist[:10]:
         val_data = ut.load_data(ID, params['win_length'], params['sampling_rate'], params['hop_length'],params['nfft'],
                      params['spec_len'], 'test', args.data_format)
         info = network_eval.predict(np.expand_dims(val_data, (0, -1)))
         v += info.tolist()
     v = np.array(v)
 
-    print('val data shape'.format(v.shape))
+    print('val data shape {}'.format(v.shape))
     if model_config['loss'] == 'mse':
         v = v.T[0] * 10 + 5
         vallb = vallb * 10 + 5
