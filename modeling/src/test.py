@@ -101,7 +101,7 @@ def main():
     print('==> start testing.')
 
     v = []
-    for ID in vallist[:10]:
+    for ID in vallist:
         val_data = ut.load_data(ID, params['win_length'], params['sampling_rate'], params['hop_length'],params['nfft'],
                      params['spec_len'], 'test', args.data_format)
         info = network_eval.predict(np.expand_dims(val_data, (0, -1)))
