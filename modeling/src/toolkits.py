@@ -119,7 +119,7 @@ def assign_category(score_rule, score):
     assert 'high' in score_rule
     if (score <= score_rule['low']['max']) and (score > score_rule['low']['min']):
         return 0
-    elif (score <= score_rule['high']['max']) and (score > score_rule['low']['min']):
+    elif (score <= score_rule['high']['max']) and (score > score_rule['high']['min']):
         return 1
     elif 'medium' in score_rule:
         if (score <= score_rule['medium']['max']) and (score > score_rule['medium']['min']):
