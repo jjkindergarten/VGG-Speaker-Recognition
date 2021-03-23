@@ -1,6 +1,6 @@
 {
   "ghost_cluster" : 2,
-  "vlad_cluster": 10,
+  "vlad_cluster": 8,
   "aggregation_mode": "gvlad",
   "bottleneck_dim": 16,
   "loss": "mse",
