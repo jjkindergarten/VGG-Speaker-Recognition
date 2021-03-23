@@ -36,7 +36,7 @@ def calculate_acc(content_table, score_rule):
         content_select = content_table[(content_table['score_true'] > min_threshold) &
                                      (content_table['score_true'] < max_threshold)][['score_true', 'score_predict']].copy()
         content_select = ((content_select['score_true'] > min_threshold) & (content_select['score_true'] < max_threshold)) * 1
-        acc = sum(content_select['coach_score'] == content_select['score_predict']) / len(content_select)
+        acc = sum(content_select['score_true'] == content_select['score_predict']) / len(content_select)
         print('accuracy of category {} is: {}'.format(cate, acc))
 
 def calculate_mse(content_table, score_rule):
