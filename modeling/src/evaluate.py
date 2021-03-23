@@ -2,6 +2,19 @@ import argparse
 import json
 import pandas as pd
 import numpy as np
+from sklearn.metrics import confusion_matrix
+
+from toolkits import assign_category
+
+model_config_file = '../../model_config/vgg_speaker_config.json'
+with open(model_config_file, 'r') as f:
+    model_config = json.load(f)
+    f.close()
+
+score_rule_file = '../../model_config/classification_rule.json'
+with open(score_rule_file, 'r') as f:
+    score_rule = json.load(f)
+    f.close()
 
 def assign_score(low_prob, high_prob):
     if (low_prob < 0.4) and (high_prob > 0.6):
@@ -29,15 +42,20 @@ def assign_score(low_prob, high_prob):
     print('{} and {} is not solved yet'.format(low_prob, high_prob))
     return 5
 
+
+
 def calculate_acc(content_table, score_rule):
     for cate in score_rule:
         max_threshold = score_rule[cate]['max']
         min_threshold = score_rule[cate]['min']
         content_select = content_table[(content_table['score_true'] > min_threshold) &
                                      (content_table['score_true'] < max_threshold)][['score_true', 'score_predict']].copy()
-        content_select = ((content_select['score_true'] > min_threshold) & (content_select['score_true'] < max_threshold)) * 1
+        content_select = ((content_select > min_threshold) & (content_select < max_threshold)) * 1
         acc = sum(content_select['score_true'] == content_select['score_predict']) / len(content_select)
         print('accuracy of category {} is: {}'.format(cate, acc))
+    result = content_table.apply(lambda x: assign_category(score_rule, x))
+    print('confusion matrix: ')
+    print(confusion_matrix(result['score_true'].values, result['score_predict'].values))
 
 def calculate_mse(content_table, score_rule):
     for cate in score_rule:
@@ -55,15 +73,7 @@ if __name__ == '__main__':
     # parser.add_argument('--meta_table_path', default='', type=str)
     args = parser.parse_args()
 
-    model_config_file = '../../model_config/vgg_speaker_config.json'
-    with open(model_config_file, 'r') as f:
-        model_config = json.load(f)
-        f.close()
 
-    score_rule_file = '../../model_config/classification_rule.json'
-    with open(score_rule_file, 'r') as f:
-        score_rule = json.load(f)
-        f.close()
 
     if model_config['loss'] != 'mse':
         assert args.table2_path != ''
