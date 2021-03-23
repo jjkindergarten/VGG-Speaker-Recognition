@@ -63,8 +63,8 @@ def main():
     # ==================================
     #       Get Train/Val.
     # ==================================
-    vallist, vallb = toolkits.get_hike_datalist(meta_path=args.meta_data_path, data_path=args.data_path, mode=model_config['loss'])
-    _, valscore = toolkits.get_hike_datalist(meta_path=args.meta_data_path, data_path=args.data_path, mode='mse')
+    vallist, vallb = toolkits.get_hike_datalist(meta_paths=args.meta_data_path, data_paths=args.data_path, mode=model_config['loss'])
+    _, valscore = toolkits.get_hike_datalist(meta_paths=args.meta_data_path, data_paths=args.data_path, mode='mse')
 
     # ==================================
     #       Get Model
