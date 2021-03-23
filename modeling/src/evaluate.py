@@ -49,8 +49,8 @@ def calculate_acc(content_table, score_rule):
         max_threshold = score_rule[cate]['max']
         min_threshold = score_rule[cate]['min']
         content_select = content_table[(content_table['score_true'] > min_threshold) &
-                                     (content_table['score_true'] < max_threshold)][['score_true', 'score_predict']].copy()
-        content_select = ((content_select > min_threshold) & (content_select < max_threshold)) * 1
+                                     (content_table['score_true'] <= max_threshold)][['score_true', 'score_predict']].copy()
+        content_select = ((content_select > min_threshold) & (content_select <= max_threshold)) * 1
         acc = sum(content_select['score_true'] == content_select['score_predict']) / len(content_select)
         print('accuracy of category {} is: {}'.format(cate, acc))
     result = content_table[['score_true', 'score_predict']].applymap(lambda x: assign_category(score_rule, x)).copy()
@@ -77,11 +77,11 @@ if __name__ == '__main__':
 
     if model_config['loss'] != 'mse':
         assert args.table2_path != ''
-        high_table = pd.read_csv(args.table1_path)
-        low_table = pd.read_csv(args.table2_path)
-        high_table.rename({'prob_0':'high_prob_0', 'prob_1':'high_prob_1', 'true_label':'high_true_label'})
-        low_table.rename({'prob_0':'low_prob_0', 'prob_1':'low_prob_1', 'true_label':'low_true_label'})
-        content_table = high_table.merge(low_table, how='inner', on='content')
+        high_table = pd.read_csv(args.table1_path, index_col=0)
+        low_table = pd.read_csv(args.table2_path, index_col=0)
+        high_table.rename(columns={'prob_0':'high_prob_0', 'prob_1':'high_prob_1', 'true_label':'high_true_label'}, inplace=True)
+        low_table.rename(columns={'prob_0':'low_prob_0', 'prob_1':'low_prob_1', 'true_label':'low_true_label'}, inplace=True)
+        content_table = high_table.merge(low_table, how='inner', on=['content', 'score_true'])
         content_table['score_predict'] = ''
         for i in range(len(content_table)):
             low_prob = content_table.loc[i, 'low_prob_0']

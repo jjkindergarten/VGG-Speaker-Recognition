@@ -7,7 +7,7 @@
   "optimizer": "adam",
   "lr": 0.001,
   "warmup_ratio": 0.1,
-  "epochs": 50,
-  "batch_size": 16,
+  "epochs": 120,
+  "batch_size": 12,
   "ohem_level": 0
 }

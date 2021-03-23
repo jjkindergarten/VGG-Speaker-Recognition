@@ -118,11 +118,12 @@ def main():
         df = np.hstack([vallist.reshape(-1, 1), v_test])
         df = pd.DataFrame(data=df, columns=['content', 'score_predict', 'score_true'])
     else:
+        valscore = valscore * 10 + 5
         v_predict = ((v<0.5)*1)[:,0]
         metric = sum(v_predict==vallb)/len(vallb)
         print('confusion matrix: ', confusion_matrix(vallb, v_predict))
         print('accuracy ', metric)
-        v_test = np.hstack([v, vallb.reshape(-1, 1), valscore]).astype('float')
+        v_test = np.hstack([v, vallb.reshape(-1, 1), valscore.reshape(-1, 1)]).astype('float')
         df = np.hstack([vallist.reshape(-1, 1), v_test])
         df = pd.DataFrame(data=df, columns=['content', 'prob_0', 'prob_1', 'true_label', 'score_true'])
 
