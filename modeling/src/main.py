@@ -165,7 +165,7 @@ def main():
     else:
         if model_config['loss'] != 'mse':
             network.fit_generator(trn_gen,
-                                  steps_per_epoch=int(len(partition['train'])//args.batch_size),
+                                  steps_per_epoch=int(len(partition['train'])//model_config['batch_size']),
                                   epochs=model_config['epochs'],
                                   max_queue_size=10,
                                   validation_data=val_gen,
